@@ -33,10 +33,17 @@ export class Session{
     public setSessionID(sessionID: string){
         this.sessionID = sessionID;
     }
+    public getSessionID(): string{
+        return this.sessionID;
+    }
 
     public setTotalModulesStudied(totalModulesStudied: number){
         this.nonNegativeCheck(totalModulesStudied, "Total Modules Studied")
         this.totalModulesStudied = totalModulesStudied;
+    }
+
+    public getTotalModulesStudied(): number{
+        return this.totalModulesStudied;
     }
 
     public setAverageScore(averageScore: number){
@@ -44,9 +51,16 @@ export class Session{
         this.averageScore = averageScore;
     }
 
+    public getAverageScore(): number{
+        return this.averageScore;
+    }
+
     public setTimeStudied(timeStudied: number){
         this.nonNegativeCheck(timeStudied, "Time Studied")
         this.timeStudied = timeStudied;
+    }
+    public getTimeStudied(): number{
+        return this.timeStudied;
     }
     private nonNegativeCheck(value: number, variableName: string) {
         if (value < 0) {
@@ -56,6 +70,10 @@ export class Session{
 
     public setCourseID(courseID: string){
         this.courseID = courseID;
+    }
+
+    public getCourseID(): string{
+        return this.courseID;
     }
 
 }
