@@ -30,4 +30,19 @@ describe('Session Class', () => {
       });
     }).toThrow('totalModulesStudied must be non-negative');
   });
+
+  it('should throw an error for negative averageScore', () => {
+    expect(() => {
+      new Session('session-123', 1, -80, 10);
+    }).toThrow('averageScore must be non-negative');
+
+    expect(() => {
+      new Session.create({
+        sessionID: 'session-123', 
+        totalModulesStudied: 1, 
+        averageScore: -80,
+        timeStudied: 10
+      });
+    }).toThrow('totalModulesStudied must be non-negative');
+  });
 });
