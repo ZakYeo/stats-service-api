@@ -5,13 +5,15 @@ export class Session{
     private averageScore!: number;
     private timeStudied!: number;
     private courseID!: string;
+    private userID!: string;
 
-    constructor(sessionID: string, totalModulesStudied: number, averageScore: number, timeStudied: number, courseID: string){
+    constructor(sessionID: string, totalModulesStudied: number, averageScore: number, timeStudied: number, courseID: string, userID: string){
         this.setSessionID(sessionID);
         this.setTotalModulesStudied(totalModulesStudied);
         this.setAverageScore(averageScore);
         this.setTimeStudied(timeStudied);
         this.setCourseID(courseID);
+        this.setUserID(userID);
     }
 
     static create({
@@ -19,15 +21,17 @@ export class Session{
         totalModulesStudied,
         averageScore,
         timeStudied,
-        courseID
+        courseID,
+        userID
     }: {
         sessionID: string;
         totalModulesStudied: number;
         averageScore: number;
         timeStudied: number;
         courseID: string;
+        userID: string
     }): Session {
-        return new Session(sessionID, totalModulesStudied, averageScore, timeStudied, courseID);
+        return new Session(sessionID, totalModulesStudied, averageScore, timeStudied, courseID, userID);
     }
 
     public setSessionID(sessionID: string){
@@ -74,6 +78,15 @@ export class Session{
 
     public getCourseID(): string{
         return this.courseID;
+    }
+
+
+    public setUserID(userID: string){
+        this.userID = userID;
+    }
+
+    public getUserID(): string{
+        return this.userID;
     }
 
 }

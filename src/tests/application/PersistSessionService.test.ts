@@ -28,7 +28,8 @@ describe('Persist Session Service', () => {
         totalModulesStudied: 1,
         averageScore: 1,
         timeStudied: 1,
-        courseID: "course-123"
+        courseID: "course-123",
+        userID: "user-123"
     });
 
     await expect(sessionPersistService.saveSession(sessionToSave)).resolves.toBeUndefined();
@@ -46,7 +47,8 @@ describe('Persist Session Service', () => {
       totalModulesStudied: 1,
       averageScore: 1,
       timeStudied: 1,
-      courseID: "course-123"
+      courseID: "course-123",
+      userID: "user-123"
     })
   );
 
@@ -56,7 +58,8 @@ describe('Persist Session Service', () => {
         totalModulesStudied: 1,
         averageScore: 1,
         timeStudied: 1,
-        courseID: "course-123"
+        courseID: "course-123",
+        userID: "user-123"
     });
     await expect(sessionPersistService.saveSession(sessionToSave))
         .rejects.toThrow('Cannot save: SessionID already exists.');
@@ -81,7 +84,8 @@ describe('Persist Session Service', () => {
         totalModulesStudied: 1,
         averageScore: 90,
         timeStudied: 120,
-        courseID: "course-123"
+        courseID: "course-123",
+        userID: "user-123"
     });
 
     await expect(sessionPersistService.saveSession(sessionToSave))
