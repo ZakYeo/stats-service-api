@@ -22,4 +22,8 @@ export class PersistSessionService{
     public async findSessionByID(sessionID: string, courseID: string, userID: string): Promise<Session | null>{
         return await this.sessionRepository.findSessionByID(sessionID, courseID, userID);
     }
+
+    public findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<Session | null>{
+        return this.sessionRepository.findCourseLifetimeStats(userID, courseID);
+    }
 }

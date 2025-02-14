@@ -23,6 +23,10 @@ class MockSessionRepository implements SessionRepository {
         })
         return Promise.resolve(mockSession);
     }
+
+    async *findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<Session | null> {
+        return;
+    }
 }
 
 export const handler = async (

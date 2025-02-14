@@ -12,13 +12,14 @@ class MockSessionRepository implements SessionRepository {
     public findSessionByID(sessionID: string): Promise<Session | null>{
         return Promise.resolve(null);
     }
+
+    async *findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<Session | null> {
+      return;
+    }
 }
 
 describe('Persist Session Service', () => {
   it('Successfully saves an incoming session', async () => {
-
-
-
     const mockSessionRepository = new MockSessionRepository();
     const saveSessionSpy = jest.spyOn(mockSessionRepository, 'saveSession');
 
@@ -92,5 +93,90 @@ describe('Persist Session Service', () => {
         .rejects.toThrow('Database failure');
     });
 
+  it('Finds all course lifetime stats', async () => {
+    class MockSessionRepositoryForLifetimeCourseStats implements SessionRepository {
+        private sessions: Session[] = [];
+        constructor(){}
+
+        public saveSession(session: Session): Promise<void>{
+            this.sessions.push(session);
+            return Promise.resolve();
+        }
+
+        public findSessionByID(sessionID: string): Promise<Session | null>{
+            return Promise.resolve(null);
+        }
+
+        async *findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<Session | null> {
+          for(const session of this.sessions){
+            if(session.getUserID() === userID && session.getCourseID() === courseID){
+              yield session;
+            }
+          }
+          yield null;
+        }
+    }
+    const mockSessionRepository = new MockSessionRepositoryForLifetimeCourseStats();
+    const sessionPersistService = new PersistSessionService(mockSessionRepository);
+    const sessionOneToSave = Session.create({
+        sessionID: "session-456",
+        totalModulesStudied: 1,
+        averageScore: 90,
+        timeStudied: 120,
+        courseID: "course-123",
+        userID: "user-123"
+    });
+    const sessionTwoToSave = Session.create({
+        sessionID: "session-457",
+        totalModulesStudied: 8,
+        averageScore: 89,
+        timeStudied: 110,
+        courseID: "course-123",
+        userID: "user-123"
+    });
+    const sessionThreeToSave = Session.create({
+        sessionID: "session-458",
+        totalModulesStudied: 5,
+        averageScore: 45,
+        timeStudied: 200,
+        courseID: "course-123",
+        userID: "user-123"
+    });
+    const sessionFourToSave = Session.create({
+        sessionID: "session-999",
+        totalModulesStudied: 8,
+        averageScore: 30,
+        timeStudied: 180,
+        courseID: "course-124",
+        userID: "user-124"
+    });
+    const sessionFiveToSave = Session.create({
+        sessionID: "session-899",
+        totalModulesStudied: 8,
+        averageScore: 30,
+        timeStudied: 180,
+        courseID: "course-124",
+        userID: "user-123"
+    });
+
+    await sessionPersistService.saveSession(sessionOneToSave)
+    await sessionPersistService.saveSession(sessionTwoToSave)
+    await sessionPersistService.saveSession(sessionThreeToSave)
+    await sessionPersistService.saveSession(sessionFourToSave)
+    await sessionPersistService.saveSession(sessionFiveToSave)
+
+
+  const foundSessions: Session[] = [];
+      for await (const session of sessionPersistService.findCourseLifetimeStats("user-123", "course-123")) {
+        if(session){
+          foundSessions.push(session);
+        }
+    }
+
+    expect(foundSessions).toHaveLength(3);
+    expect(foundSessions).toContainEqual(sessionOneToSave);
+    expect(foundSessions).toContainEqual(sessionTwoToSave);
+    expect(foundSessions).toContainEqual(sessionThreeToSave);
+  });
 
 });
