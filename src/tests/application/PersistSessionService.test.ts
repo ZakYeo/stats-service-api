@@ -70,7 +70,7 @@ describe('Persist Session Service', () => {
   it('Returns null when finding a session that does not exist', async () => {
     const mockSessionRepository = new MockSessionRepository();
     const sessionPersistService = new PersistSessionService(mockSessionRepository);
-    const session = await sessionPersistService.findSessionByID('nonexistent-session');
+    const session = await sessionPersistService.findSessionByID('nonexistent-session', "course-123", "userID");
     expect(session).toBeNull();
   });
 

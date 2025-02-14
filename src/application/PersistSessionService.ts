@@ -9,13 +9,17 @@ export class PersistSessionService{
     }
 
     public async saveSession(session: Session): Promise<void>{
-        if(await this.findSessionByID(session.getSessionID()) != null){
+        if(await this.findSessionByID(
+            session.getSessionID(), 
+            session.getCourseID(),
+            session.getUserID()
+        ) != null){
             throw new Error("Cannot save: SessionID already exists.")
         }
         return this.sessionRepository.saveSession(session);
 
     }
-    public async findSessionByID(sessionID: string): Promise<Session | null>{
-        return await this.sessionRepository.findSessionByID(sessionID);
+    public async findSessionByID(sessionID: string, courseID: string, userID: string): Promise<Session | null>{
+        return await this.sessionRepository.findSessionByID(sessionID, courseID, userID);
     }
 }
