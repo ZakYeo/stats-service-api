@@ -12,7 +12,7 @@ class MockSessionRepository implements SessionRepository {
         return Promise.resolve();
     }
 
-    public findSessionByID(sessionID: string): Promise<Session | null>{
+    public findSessionByID(sessionID: string, courseID: string, userID: string): Promise<Session | null>{
         return Promise.resolve(null);
     }
 }
