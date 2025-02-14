@@ -14,3 +14,16 @@ Resources:
           Properties:
             Path: /courses/{courseId}
             Method: POST
+  FetchSessionFunction:
+      Type: AWS::Serverless::Function
+      Properties:
+        Handler: lambdas/fetchSession.handler
+        Runtime: nodejs18.x
+        CodeUri: ./dist
+        Timeout: 10
+        Events:
+          CreateSessionApi:
+            Type: Api
+            Properties:
+              Path: /courses/{courseId}/sessions/{sessionId}
+              Method: GET
