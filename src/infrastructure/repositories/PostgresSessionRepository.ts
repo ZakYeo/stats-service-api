@@ -37,7 +37,7 @@ export class PostgresSessionRepository implements SessionRepository {
       console.error("Error saving session:", error);
       throw new Error("Failed to save session");
     } finally {
-      client.release(); // Always release the client back to the pool
+      client.release();
     }
   }
 
