@@ -2,45 +2,18 @@ import { APIGatewayEvent, Context, APIGatewayProxyResult } from "aws-lambda";
 import { Session } from "../core/Session";
 import { SessionRepository } from "../infrastructure/repositories/SessionRepository";
 import { PersistSessionService } from "../application/PersistSessionService";
-
-/* TODO: Mock service for now. Implement database layer later */
-class MockSessionRepository implements SessionRepository {
-    constructor(){}
-
-    public saveSession(session: Session): Promise<void>{
-      console.log("Saving session");
-        return Promise.resolve();
-    }
-
-    public findSessionByID(sessionID: string, courseID: string, userID: string): Promise<Session | null>{
-        const mockSession = Session.create({
-            sessionID: sessionID,
-            totalModulesStudied: 1,
-            averageScore: 1,
-            timeStudied: 1,
-            courseID: courseID,
-            userID: userID
-        })
-        return Promise.resolve(mockSession);
-    }
-
-    async *findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<Session | null> {
-        return;
-    }
-}
+import { PostgresSessionRepository } from "../infrastructure/repositories/PostgresSessionRepository";
 
 export const handler = async (
   event: APIGatewayEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
     /* Fetch a session from sessionID, courseID & userID */
-
-
-    const persistSessionService = new PersistSessionService(new MockSessionRepository());
+    const persistSessionService = new PersistSessionService(new PostgresSessionRepository());
     const session = await persistSessionService.findSessionByID(
-        event.headers?.sessionID || "", 
-        event.headers?.courseID || "", 
-        event.headers?.userID || ""
+        event.headers?.Sessionid || "", 
+        event.headers?.Courseid || "", 
+        event.headers?.Userid || ""
     )
 
     let response;
