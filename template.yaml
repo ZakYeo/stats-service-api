@@ -8,6 +8,13 @@ Resources:
       Runtime: nodejs18.x
       CodeUri: ./dist
       Timeout: 10
+      Environment:
+        Variables:
+          DATABASE_HOST: host.docker.internal
+          DATABASE_PORT: 5432
+          DATABASE_NAME: stats
+          DATABASE_USER: admin
+          DATABASE_PASSWORD: password
       Events:
         CreateSessionApiPost:
           Type: Api
@@ -21,12 +28,20 @@ Resources:
         Runtime: nodejs18.x
         CodeUri: ./dist
         Timeout: 10
+        Environment:
+          Variables:
+            DATABASE_HOST: host.docker.internal
+            DATABASE_PORT: 5432
+            DATABASE_NAME: stats
+            DATABASE_USER: admin
+            DATABASE_PASSWORD: password
         Events:
           FetchSessionApi:
             Type: Api
             Properties:
               Path: /courses/{courseId}/sessions/{sessionId}
               Method: GET
+
   FetchCourseLifetimeStatsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -34,6 +49,13 @@ Resources:
       Runtime: nodejs18.x
       CodeUri: ./dist
       Timeout: 10
+      Environment:
+        Variables:
+          DATABASE_HOST: host.docker.internal
+          DATABASE_PORT: 5432
+          DATABASE_NAME: stats
+          DATABASE_USER: admin
+          DATABASE_PASSWORD: password
       Events:
         FetchCourseLifetimeStatsApi:
           Type: Api
