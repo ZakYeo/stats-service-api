@@ -1,4 +1,9 @@
-version: "3"
+version: "3.8"
+networks:
+  local-dev-network:
+    name: local-dev-network
+    driver: bridge
+
 services:
   postgres:
     image: postgres:latest
@@ -9,6 +14,8 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
       POSTGRES_DB: stats
+    networks:
+      - local-dev-network
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql

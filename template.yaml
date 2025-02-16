@@ -7,10 +7,10 @@ Resources:
       Handler: lambdas/createSession.handler
       Runtime: nodejs18.x
       CodeUri: ./dist
-      Timeout: 10
+      Timeout: 25 
       Environment:
         Variables:
-          DATABASE_HOST: host.docker.internal
+          DATABASE_HOST: postgres
           DATABASE_PORT: 5432
           DATABASE_NAME: stats
           DATABASE_USER: admin
@@ -27,10 +27,10 @@ Resources:
         Handler: lambdas/fetchSession.handler
         Runtime: nodejs18.x
         CodeUri: ./dist
-        Timeout: 10
+        Timeout: 25
         Environment:
           Variables:
-            DATABASE_HOST: host.docker.internal
+            DATABASE_HOST: postgres
             DATABASE_PORT: 5432
             DATABASE_NAME: stats
             DATABASE_USER: admin
@@ -48,10 +48,10 @@ Resources:
       Handler: lambdas/fetchCourseLifetimeStats.handler
       Runtime: nodejs18.x
       CodeUri: ./dist
-      Timeout: 10
+      Timeout: 25
       Environment:
         Variables:
-          DATABASE_HOST: host.docker.internal
+          DATABASE_HOST: postgres
           DATABASE_PORT: 5432
           DATABASE_NAME: stats
           DATABASE_USER: admin
