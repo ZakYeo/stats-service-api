@@ -1,4 +1,11 @@
-
+export interface SessionDataObject {
+    userID: string;
+    sessionID: string;
+    courseID: string;
+    totalModulesStudied: number;
+    averageScore: number;
+    timeStudied: number;
+}
 export class Session{
     private sessionID!: string;
     private totalModulesStudied!: number;
@@ -87,6 +94,17 @@ export class Session{
 
     public getUserID(): string{
         return this.userID;
+    }
+
+    public getSessionJSONData(): SessionDataObject{
+        return {
+            userID: this.userID,
+            courseID: this.courseID,
+            sessionID: this.sessionID,
+            totalModulesStudied: this.totalModulesStudied,
+            averageScore: this.averageScore,
+            timeStudied: this.timeStudied
+        }
     }
 
 }
