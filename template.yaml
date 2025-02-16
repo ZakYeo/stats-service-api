@@ -9,7 +9,7 @@ Resources:
       CodeUri: ./dist
       Timeout: 10
       Events:
-        CreateSessionApi:
+        CreateSessionApiPost:
           Type: Api
           Properties:
             Path: /courses/{courseId}
@@ -22,8 +22,21 @@ Resources:
         CodeUri: ./dist
         Timeout: 10
         Events:
-          CreateSessionApi:
+          FetchSessionApi:
             Type: Api
             Properties:
               Path: /courses/{courseId}/sessions/{sessionId}
               Method: GET
+  FetchCourseLifetimeStatsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambdas/fetchCourseLifetimeStats.handler
+      Runtime: nodejs18.x
+      CodeUri: ./dist
+      Timeout: 10
+      Events:
+        FetchCourseLifetimeStatsApi:
+          Type: Api
+          Properties:
+            Path: /courses/{courseId}
+            Method: GET
