@@ -2,6 +2,7 @@ import { APIGatewayEvent, Context, APIGatewayProxyResult } from "aws-lambda";
 import { Session } from "../core/Session";
 import { SessionRepository } from "../infrastructure/repositories/SessionRepository";
 import { PersistSessionService } from "../application/PersistSessionService";
+import { PostgresSessionRepository } from "../infrastructure/repositories/PostgresSessionRepository";
 
 /* TODO: Mock service for now. Implement database layer later */
 class MockSessionRepository implements SessionRepository {
@@ -32,10 +33,10 @@ export const handler = async (
     totalModulesStudied: parsedBody?.totalModulesStudied,
     averageScore: parsedBody?.averageScore,
     timeStudied: parsedBody?.timeStudied,
-    courseID: event.headers?.courseID || "",
-    userID: event.headers.userID || ""
+    courseID: event.headers?.Courseid || "",
+    userID: event.headers.Userid || ""
   });
-  const persistSessionService = new PersistSessionService(new MockSessionRepository());
+  const persistSessionService = new PersistSessionService(new PostgresSessionRepository());
   await persistSessionService.saveSession(sessionToSave);
 
   return {
