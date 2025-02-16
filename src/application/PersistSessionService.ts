@@ -20,10 +20,43 @@ export class PersistSessionService{
 
     }
     public async findSessionByID(sessionID: string, courseID: string, userID: string): Promise<Session | null>{
-        return await this.sessionRepository.findSessionByID(sessionID, courseID, userID);
+        const sessionResponse = await this.sessionRepository.findSessionByID(sessionID, courseID, userID);
+        if(sessionResponse){
+            return Session.create({
+                sessionID: sessionResponse.sessionID,
+                courseID: sessionResponse.courseID,
+                userID: sessionResponse.userID,
+                totalModulesStudied: sessionResponse.totalModulesStudied,
+                averageScore: sessionResponse.averageScore,
+                timeStudied: sessionResponse.timeStudied 
+            })
+        }else{
+            return null;
+        }
     }
 
-    public findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<Session | null>{
-        return this.sessionRepository.findCourseLifetimeStats(userID, courseID);
+    public async findCourseLifetimeStats(userID: string, courseID: string): Promise<Session[]> {
+        const sessions: Session[] = [];
+        const resultGenerator = this.sessionRepository.findCourseLifetimeStats(userID, courseID);
+
+        for await (const rawData of resultGenerator) {
+            if (rawData) {
+            const session = Session.create({
+                sessionID: rawData.sessionID,
+                courseID: rawData.courseID,
+                userID: rawData.userID,
+                totalModulesStudied: rawData.totalModulesStudied,
+                averageScore: rawData.averageScore,
+                timeStudied: rawData.timeStudied,
+            });
+            sessions.push(session);
+            } else {
+            console.warn("Received null session data.");
+            }
+        }
+
+        return sessions;
     }
+
+ 
 }

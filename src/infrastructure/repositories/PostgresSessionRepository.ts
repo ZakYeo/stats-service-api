@@ -1,6 +1,7 @@
 import { Pool } from "pg"; 
-import { SessionRepository } from "./SessionRepository";
+import { SessionRepository, SessionResponseObject } from "./SessionRepository";
 import { Session } from "../../core/Session";
+
 
 export class PostgresSessionRepository implements SessionRepository {
   private pool: Pool;
@@ -41,7 +42,7 @@ export class PostgresSessionRepository implements SessionRepository {
     }
   }
 
-  async findSessionByID(sessionID: string, courseID: string, userID: string): Promise<Session | null> {
+  async findSessionByID(sessionID: string, courseID: string, userID: string): Promise<SessionResponseObject | null> {
     const query = `
       SELECT session_id, course_id, user_id, total_modules, average_score, time_studied, created_at
       FROM sessions
@@ -54,14 +55,15 @@ export class PostgresSessionRepository implements SessionRepository {
       const result = await client.query(query, values);
       if (result.rows.length > 0) {
         const row = result.rows[0];
-        return Session.create({
+        return {
           sessionID: row.session_id,
           courseID: row.course_id,
           userID: row.user_id,
           totalModulesStudied: row.total_modules,
           averageScore: row.average_score,
           timeStudied: row.time_studied,
-        });
+        }
+        
       }
       return null;
     } catch (error) {
@@ -72,7 +74,7 @@ export class PostgresSessionRepository implements SessionRepository {
     }
   }
 
-  async *findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<Session | null> {
+  async *findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<SessionResponseObject | null> {
     const query = `
       SELECT session_id, course_id, user_id, total_modules, average_score, time_studied, created_at
       FROM sessions
@@ -85,14 +87,14 @@ export class PostgresSessionRepository implements SessionRepository {
     try {
       const result = await client.query(query, values);
       for (const row of result.rows) {
-        yield Session.create({
+        yield {
           sessionID: row.session_id,
           courseID: row.course_id,
           userID: row.user_id,
           totalModulesStudied: row.total_modules,
           averageScore: row.average_score,
           timeStudied: row.time_studied,
-        });
+        };
       }
     } catch (error) {
       console.error("Error fetching course lifetime stats:", error);
