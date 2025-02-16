@@ -4,24 +4,6 @@ import { SessionRepository } from "../infrastructure/repositories/SessionReposit
 import { PersistSessionService } from "../application/PersistSessionService";
 import { PostgresSessionRepository } from "../infrastructure/repositories/PostgresSessionRepository";
 
-/* TODO: Mock service for now. Implement database layer later */
-class MockSessionRepository implements SessionRepository {
-    constructor(){}
-
-    public saveSession(session: Session): Promise<void>{
-      console.log("Saving session");
-        return Promise.resolve();
-    }
-
-    public findSessionByID(sessionID: string, courseID: string, userID: string): Promise<Session | null>{
-        return Promise.resolve(null);
-    }
-
-    async *findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<Session | null> {
-      return;
-    }
-}
-
 export const handler = async (
   event: APIGatewayEvent,
   context: Context
