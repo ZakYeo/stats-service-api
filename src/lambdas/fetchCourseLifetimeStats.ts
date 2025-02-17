@@ -9,8 +9,8 @@ export const handler = async (
   context: Context
 ): Promise<APIGatewayProxyResult> => {
 
-  const userID = event.headers?.Userid || "";
-  const courseID = event.headers?.Courseid || "";
+  const userID = event.headers?.Userid || event.headers?.userid || "";
+  const courseID = event.headers?.Courseid || event.headers?.courseid || "";
 
   const persistSessionService = new PersistSessionService(new PostgresSessionRepository());
   const foundSessions: Result<Session[]> = await persistSessionService.findCourseLifetimeStats(userID, courseID);

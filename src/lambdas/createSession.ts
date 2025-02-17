@@ -15,8 +15,8 @@ export const handler = async (
     totalModulesStudied: parsedBody?.totalModulesStudied,
     averageScore: parsedBody?.averageScore,
     timeStudied: parsedBody?.timeStudied,
-    courseID: event.headers?.Courseid || "",
-    userID: event.headers.Userid || ""
+    courseID: event.headers?.Courseid || event.headers?.courseid || "",
+    userID: event.headers?.Userid || event.headers?.userid || ""
   });
   const persistSessionService = new PersistSessionService(new PostgresSessionRepository());
   await persistSessionService.saveSession(sessionToSave);

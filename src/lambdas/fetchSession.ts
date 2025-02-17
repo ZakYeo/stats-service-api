@@ -9,9 +9,9 @@ export const handler = async (
     /* Fetch a session from sessionID, courseID & userID */
     const persistSessionService = new PersistSessionService(new PostgresSessionRepository());
     const session = await persistSessionService.findSessionByID(
-        event.headers?.Sessionid || "", 
-        event.headers?.Courseid || "", 
-        event.headers?.Userid || ""
+        event.headers?.Sessionid || event.headers?.sessionid || "", 
+        event.headers?.Courseid || event.headers?.courseid || "", 
+        event.headers?.Userid || event.headers?.userid || ""
     )
     if(!session.ok){
         return {
