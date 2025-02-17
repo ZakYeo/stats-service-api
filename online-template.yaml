@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  StatsDatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow Lambda to access RDS"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0 
+
+  StatsDatabase:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: my-sam-rds
+      Engine: postgres
+      DBInstanceClass: db.t3.micro
+      AllocatedStorage: 20
+      MasterUsername: zak
+      MasterUserPassword: ZdUr3dxhfoh1jMf4mlI0bbo49NhG
+      DBName: stats
+      VPCSecurityGroups:
+        - !GetAtt StatsDatabaseSecurityGroup.GroupId
+      PubliclyAccessible: true
+
+  CreateSessionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambdas/createSession.handler
+      Runtime: nodejs18.x
+      CodeUri: ./dist
+      Timeout: 25
+      Environment:
+        Variables:
+          DATABASE_HOST: !GetAtt StatsDatabase.Endpoint.Address
+          DATABASE_PORT: 5432
+          DATABASE_NAME: stats
+          DATABASE_USER: zak
+          DATABASE_PASSWORD: ZdUr3dxhfoh1jMf4mlI0bbo49NhG
+      Events:
+        CreateSessionApiPost:
+          Type: Api
+          Properties:
+            Path: /courses/{courseId}
+            Method: POST
+
+  FetchSessionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambdas/fetchSession.handler
+      Runtime: nodejs18.x
+      CodeUri: ./dist
+      Timeout: 25
+      Environment:
+        Variables:
+          DATABASE_HOST: !GetAtt StatsDatabase.Endpoint.Address
+          DATABASE_PORT: 5432
+          DATABASE_NAME: stats
+          DATABASE_USER: zak
+          DATABASE_PASSWORD: ZdUr3dxhfoh1jMf4mlI0bbo49NhG
+      Events:
+        FetchSessionApi:
+          Type: Api
+          Properties:
+            Path: /courses/{courseId}/sessions/{sessionId}
+            Method: GET
+
+  FetchCourseLifetimeStatsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambdas/fetchCourseLifetimeStats.handler
+      Runtime: nodejs18.x
+      CodeUri: ./dist
+      Timeout: 25
+      Environment:
+        Variables:
+          DATABASE_HOST: !GetAtt StatsDatabase.Endpoint.Address
+          DATABASE_PORT: 5432
+          DATABASE_NAME: stats
+          DATABASE_USER: zak
+          DATABASE_PASSWORD: ZdUr3dxhfoh1jMf4mlI0bbo49NhG
+      Events:
+        FetchCourseLifetimeStatsApi:
+          Type: Api
+          Properties:
+            Path: /courses/{courseId}
+            Method: GET
+  
