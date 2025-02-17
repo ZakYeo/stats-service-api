@@ -1,6 +1,4 @@
 import { APIGatewayEvent, Context, APIGatewayProxyResult } from "aws-lambda";
-import { Session } from "../core/Session";
-import { SessionRepository } from "../infrastructure/repositories/SessionRepository";
 import { PersistSessionService } from "../application/PersistSessionService";
 import { PostgresSessionRepository } from "../infrastructure/repositories/PostgresSessionRepository";
 
@@ -15,31 +13,37 @@ export const handler = async (
         event.headers?.Courseid || "", 
         event.headers?.Userid || ""
     )
-
-    let response;
-
-    if(session){
-        response = {
-            statusCode: 200,
+    if(!session.ok){
+        return {
+            statusCode: 500,
             body: JSON.stringify({
-                "userID": session.getUserID(),
-                "totalModulesStudied": session.getTotalModulesStudied(),
-                "averageScore": session.getAverageScore(),
-                "timeStudied": session.getTimeStudied(),
-                "courseID": session.getCourseID(),
-                "message": "Successfully found session.",
-                "found": true
+                found: false,
+                message: session.error.message
             })
+
         }
-    } else {
-        response = {
-            statusCode: 200,
+    }
+    if(!session.value){
+        return {
+            statusCode: 500,
             body: JSON.stringify({
-                "message": "Could not find session.",
-                "found": false
+                found: false,
+                message: "Could not find session."
             })
         }
     }
 
-    return response;
+    return {
+        statusCode: 200,
+        body: JSON.stringify({
+            "userID": session.value.getUserID(),
+            "totalModulesStudied": session.value.getTotalModulesStudied(),
+            "averageScore": session.value.getAverageScore(),
+            "timeStudied": session.value.getTimeStudied(),
+            "courseID": session.value.getCourseID(),
+            "message": "Successfully found session.",
+            "found": true
+        })
+    }
+
 };

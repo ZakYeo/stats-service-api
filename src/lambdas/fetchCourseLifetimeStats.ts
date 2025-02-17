@@ -1,4 +1,5 @@
 import { APIGatewayEvent, Context, APIGatewayProxyResult } from "aws-lambda";
+import { Result } from "../infrastructure/repositories/SessionRepository";
 import { Session } from "../core/Session";
 import { PersistSessionService } from "../application/PersistSessionService";
 import { PostgresSessionRepository } from "../infrastructure/repositories/PostgresSessionRepository";
@@ -8,21 +9,30 @@ export const handler = async (
   context: Context
 ): Promise<APIGatewayProxyResult> => {
 
-
   const userID = event.headers?.Userid || "";
   const courseID = event.headers?.Courseid || "";
 
   const persistSessionService = new PersistSessionService(new PostgresSessionRepository());
-  const foundSessions: Session[] = await persistSessionService.findCourseLifetimeStats(userID, courseID);
-  const sessionDataObjects = foundSessions.map((session) => session.getSessionJSONData());
+  const foundSessions: Result<Session[]> = await persistSessionService.findCourseLifetimeStats(userID, courseID);
 
+  if (!foundSessions.ok) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ 
+        message: foundSessions.error.message, 
+        found: false,
+      }),
+    };
+  }
 
-   return {
+  const sessionDataObjects = foundSessions.value.map((session: Session) => session.getSessionJSONData());
+
+  return {
     statusCode: 200,
     body: JSON.stringify({ 
-      message: "Successfully found sessions", 
-      found: true,
-      ...sessionDataObjects
-     }),
-  }; 
+      message: sessionDataObjects.length > 0 ? "Successfully found sessions" : "No sessions found",
+      found: sessionDataObjects.length > 0,
+      sessions: sessionDataObjects
+    }),
+  };
 };

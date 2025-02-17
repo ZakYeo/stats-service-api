@@ -1,5 +1,5 @@
 import { Pool } from "pg"; 
-import { SessionRepository, SessionResponseObject } from "./SessionRepository";
+import { SessionRepository, Result, SessionResponseObject } from "./SessionRepository";
 import { Session } from "../../core/Session";
 
 
@@ -16,7 +16,7 @@ export class PostgresSessionRepository implements SessionRepository {
     });
   }
 
-  async saveSession(session: Session): Promise<void> {
+  async saveSession(session: Session): Promise<Result<void>> {
     const query = `
       INSERT INTO sessions (session_id, course_id, user_id, total_modules, average_score, time_studied, created_at)
       VALUES ($1, $2, $3, $4, $5, $6, NOW())
@@ -34,15 +34,22 @@ export class PostgresSessionRepository implements SessionRepository {
     try {
       await client.query(query, values);
       console.log(`Session ${session.getSessionID()} saved successfully.`);
+      return {
+        ok: true,
+        value: undefined
+      }
     } catch (error) {
       console.error("Error saving session:", error);
-      throw new Error("Failed to save session");
+      return {
+        ok: false,
+        error: new Error(`Failed to save session: ${error}`)
+      }
     } finally {
       client.release();
     }
   }
 
-  async findSessionByID(sessionID: string, courseID: string, userID: string): Promise<SessionResponseObject | null> {
+  async findSessionByID(sessionID: string, courseID: string, userID: string): Promise<Result<SessionResponseObject | null>> {
     const query = `
       SELECT session_id, course_id, user_id, total_modules, average_score, time_studied, created_at
       FROM sessions
@@ -56,25 +63,34 @@ export class PostgresSessionRepository implements SessionRepository {
       if (result.rows.length > 0) {
         const row = result.rows[0];
         return {
-          sessionID: row.session_id,
-          courseID: row.course_id,
-          userID: row.user_id,
-          totalModulesStudied: row.total_modules,
-          averageScore: row.average_score,
-          timeStudied: row.time_studied,
+          ok: true,
+          value: {
+            sessionID: row.session_id,
+            courseID: row.course_id,
+            userID: row.user_id,
+            totalModulesStudied: row.total_modules,
+            averageScore: row.average_score,
+            timeStudied: row.time_studied,
+          }
         }
         
       }
-      return null;
+      return {
+        ok: true,
+        value: null
+      };
     } catch (error) {
       console.error("Error finding session:", error);
-      throw new Error("Failed to find session");
+      return {
+        ok: false,
+        error: new Error(`Failed to save session: ${error}`)
+      }
     } finally {
       client.release();
     }
   }
 
-  async *findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<SessionResponseObject | null> {
+  async *findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<Result<SessionResponseObject | null>> {
     const query = `
       SELECT session_id, course_id, user_id, total_modules, average_score, time_studied, created_at
       FROM sessions
@@ -88,17 +104,24 @@ export class PostgresSessionRepository implements SessionRepository {
       const result = await client.query(query, values);
       for (const row of result.rows) {
         yield {
-          sessionID: row.session_id,
-          courseID: row.course_id,
-          userID: row.user_id,
-          totalModulesStudied: row.total_modules,
-          averageScore: row.average_score,
-          timeStudied: row.time_studied,
+          ok: true,
+          value: {
+            sessionID: row.session_id,
+            courseID: row.course_id,
+            userID: row.user_id,
+            totalModulesStudied: row.total_modules,
+            averageScore: row.average_score,
+            timeStudied: row.time_studied,
+          }
         };
       }
+      yield {ok: true, value: null} // End of search
     } catch (error) {
       console.error("Error fetching course lifetime stats:", error);
-      throw new Error("Failed to fetch course lifetime stats");
+      yield {
+        ok: false,
+        error: new Error(`Failed to save session: ${error}`)
+      }
     } finally {
       client.release();
     }

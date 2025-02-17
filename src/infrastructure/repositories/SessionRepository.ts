@@ -7,9 +7,11 @@ export type SessionResponseObject = {
   totalModulesStudied: number;
   averageScore: number;
   timeStudied: number;
-}
+};
+
+export type Result<T> = { ok: true; value: T } | { ok: false; error: Error };
 export interface SessionRepository {
-    saveSession(session: Session): Promise<void>;
-    findSessionByID(sessionID: string, courseID: string, userID: string): Promise<SessionResponseObject | null>
-    findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<SessionResponseObject | null>;
+  saveSession(session: Session): Promise<Result<void>>;
+  findSessionByID(sessionID: string, courseID: string, userID: string): Promise<Result<SessionResponseObject | null>>;
+  findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<Result<SessionResponseObject | null>>;
 }

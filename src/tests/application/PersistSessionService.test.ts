@@ -1,20 +1,20 @@
 import { PersistSessionService } from "../../application/PersistSessionService";
-import { SessionRepository, SessionResponseObject } from "../../infrastructure/repositories/SessionRepository";
+import { SessionRepository, SessionResponseObject, Result } from "../../infrastructure/repositories/SessionRepository";
 import { Session } from "../../core/Session";
 
 class MockSessionRepository implements SessionRepository {
     constructor(){}
 
-    public saveSession(session: Session): Promise<void>{
-        return Promise.resolve();
+    public async saveSession(session: Session): Promise<Result<void>> {
+        return { ok: true, value: undefined };
     }
 
-    public findSessionByID(sessionID: string): Promise<SessionResponseObject | null>{
-        return Promise.resolve(null);
+    public async findSessionByID(sessionID: string): Promise<Result<SessionResponseObject | null>> {
+        return { ok: true, value: null };
     }
 
-    async *findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<SessionResponseObject | null> {
-      return;
+    async *findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<Result<SessionResponseObject | null>> {
+        yield { ok: true, value: null };
     }
 }
 
@@ -33,7 +33,7 @@ describe('Persist Session Service', () => {
         userID: "user-123"
     });
 
-    await expect(sessionPersistService.saveSession(sessionToSave)).resolves.toBeUndefined();
+    await expect(sessionPersistService.saveSession(sessionToSave)).resolves.toStrictEqual({ok: true, value: undefined});
     expect(saveSessionSpy).toHaveBeenCalledWith(sessionToSave);
   });
 
@@ -44,12 +44,15 @@ describe('Persist Session Service', () => {
     const saveSessionSpy = jest.spyOn(mockSessionRepository, 'saveSession');
     jest.spyOn(mockSessionRepository, 'findSessionByID').mockResolvedValueOnce(
     {
-      sessionID: "session-123",
-      totalModulesStudied: 1,
-      averageScore: 1,
-      timeStudied: 1,
-      courseID: "course-123",
-      userID: "user-123"
+      ok: true,
+      value: {
+        sessionID: "session-123",
+        totalModulesStudied: 1,
+        averageScore: 1,
+        timeStudied: 1,
+        courseID: "course-123",
+        userID: "user-123"
+      }
     }
   );
 
@@ -62,9 +65,14 @@ describe('Persist Session Service', () => {
         courseID: "course-123",
         userID: "user-123"
     });
-    await expect(sessionPersistService.saveSession(sessionToSave))
-        .rejects.toThrow('Cannot save: SessionID already exists.');
-    expect(saveSessionSpy).not.toHaveBeenCalled();
+
+    const result = await sessionPersistService.saveSession(sessionToSave);
+    expect(result.ok).toBe(false);
+    if(!result.ok){
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error.message).toBe("Cannot save: SessionID already exists.");
+      expect(saveSessionSpy).not.toHaveBeenCalled();
+    }
 
   });
 
@@ -72,7 +80,11 @@ describe('Persist Session Service', () => {
     const mockSessionRepository = new MockSessionRepository();
     const sessionPersistService = new PersistSessionService(mockSessionRepository);
     const session = await sessionPersistService.findSessionByID('nonexistent-session', "course-123", "userID");
-    expect(session).toBeNull();
+    if(session.ok){
+      expect(session.value).toBeNull();
+    }else{
+      expect(false)
+    }
   });
 
   it('Throws an error if the repository fails while saving', async () => {
@@ -93,73 +105,86 @@ describe('Persist Session Service', () => {
         .rejects.toThrow('Database failure');
     });
 
-it('findCourseLifetimeStats should return an array of Session objects', async () => {
-    class MockSessionRepositoryForLifetimeStats implements SessionRepository {
-      private sessions: SessionResponseObject[] = [
-        {
-          sessionID: "session-456",
-          courseID: "course-123",
-          userID: "user-123",
-          totalModulesStudied: 1,
-          averageScore: 90,
-          timeStudied: 120,
-        },
-        {
-          sessionID: "session-457",
-          courseID: "course-123",
-          userID: "user-123",
-          totalModulesStudied: 8,
-          averageScore: 89,
-          timeStudied: 110,
-        },
-        {
-          sessionID: "session-458",
-          courseID: "course-123",
-          userID: "user-123",
-          totalModulesStudied: 5,
-          averageScore: 45,
-          timeStudied: 200,
-        },
-        {
-          sessionID: "session-999",
-          courseID: "course-124",
-          userID: "user-124",
-          totalModulesStudied: 8,
-          averageScore: 30,
-          timeStudied: 180,
-        },
-      ];
+    it("findCourseLifetimeStats should return a Result<Session[]>", async () => {
+      class MockSessionRepositoryForLifetimeStats implements SessionRepository {
+        private sessions: SessionResponseObject[] = [
+          {
+            sessionID: "session-456",
+            courseID: "course-123",
+            userID: "user-123",
+            totalModulesStudied: 1,
+            averageScore: 90,
+            timeStudied: 120,
+          },
+          {
+            sessionID: "session-457",
+            courseID: "course-123",
+            userID: "user-123",
+            totalModulesStudied: 8,
+            averageScore: 89,
+            timeStudied: 110,
+          },
+          {
+            sessionID: "session-458",
+            courseID: "course-123",
+            userID: "user-123",
+            totalModulesStudied: 5,
+            averageScore: 45,
+            timeStudied: 200,
+          },
+          {
+            sessionID: "session-999",
+            courseID: "course-124",
+            userID: "user-124",
+            totalModulesStudied: 8,
+            averageScore: 30,
+            timeStudied: 180,
+          },
+        ];
 
-      async *findCourseLifetimeStats(userID: string, courseID: string): AsyncGenerator<SessionResponseObject | null> {
-        for (const session of this.sessions) {
-          if (session.userID === userID && session.courseID === courseID) {
-            yield session;
+        async *findCourseLifetimeStats(
+          userID: string,
+          courseID: string
+        ): AsyncGenerator<Result<SessionResponseObject | null>> {
+          for (const session of this.sessions) {
+            if (session.userID === userID && session.courseID === courseID) {
+              yield { ok: true, value: session };
+            }
           }
+        }
+
+        public async saveSession(session: Session): Promise<Result<void>> {
+          return { ok: true, value: undefined };
+        }
+
+        public async findSessionByID(
+          sessionID: string
+        ): Promise<Result<SessionResponseObject | null>> {
+          return { ok: true, value: null };
         }
       }
 
-      public saveSession(session: Session): Promise<void> {
-        return Promise.resolve();
+      const mockRepository = new MockSessionRepositoryForLifetimeStats();
+      const service = new PersistSessionService(mockRepository);
+
+      const result = await service.findCourseLifetimeStats("user-123", "course-123");
+
+      expect(result.ok).toBe(true);
+
+      if (result.ok) {
+        const sessions = result.value; 
+
+        expect(sessions).toHaveLength(3);
+        expect(sessions).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ sessionID: "session-456" }),
+            expect.objectContaining({ sessionID: "session-457" }),
+            expect.objectContaining({ sessionID: "session-458" }),
+          ])
+        );
       }
-
-      public findSessionByID(sessionID: string): Promise<SessionResponseObject | null> {
-        return Promise.resolve(null);
-      }
-    }
-
-    const mockRepository = new MockSessionRepositoryForLifetimeStats();
-    const service = new PersistSessionService(mockRepository);
-
-    const sessions = await service.findCourseLifetimeStats("user-123", "course-123");
-
-    expect(sessions).toHaveLength(3);
-    expect(sessions).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ sessionID: "session-456" }),
-        expect.objectContaining({ sessionID: "session-457" }),
-        expect.objectContaining({ sessionID: "session-458" }),
-      ])
-    );
   });
+
+
 
 });
