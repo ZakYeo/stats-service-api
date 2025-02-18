@@ -34,7 +34,7 @@ export const handler = async (
   return {
     statusCode: 201,
     body: JSON.stringify({
-      message: "Successfully saved course lifetime stats",
+      message: "Successfully saved session",
     }),
   };
 
