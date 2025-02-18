@@ -138,3 +138,33 @@ Response:
 "message": "Successfully retrieved course lifetime stats"
 }
 ```
+
+# File Structure & Code Explanation
+
+## src/core/...
+
+This directory belongs to the domain layer.<br>
+It defines the `Session` entity, holding structure and business validation.<br>
+It operates independently of external dependencies<br>
+
+## src/application/...
+
+This directory belongs to the application layer that sits between the core business logic (`Session.ts`) and external components (`repositories`).<br>
+This service manages and orchestrates interactions between the domain and external components.<br>
+Uses the Result Pattern to return results in a structured manner & decouples business logic from database concerns.<br>
+It allows different implementations of SessionRepository, e.g switching from PostgreSQL to DynamoDB easily.<br>
+
+## src/infrastructure/repositories/SessionRepository.ts
+
+This directory defines an interface for session-related database operations.<br>
+Represents the Port in hexagonal architecture, allowing dependency injection.<br>
+
+## src/infrastructure/repositories/PostgresSessionRepository.ts
+
+Adapter database implementation. Implements SessionRepository using PostgreSQL.<br>
+Converts raw DB responses into structured `Result<T>` types.<br>
+This keeps DB logic isolated from business logic and enables easy migration to another database system without modifying core logic.<br>
+
+## src/lambdas/..
+
+Each lambda function serves as an adapter to expose the API via AWS API Gateway.
