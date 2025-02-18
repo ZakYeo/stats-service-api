@@ -7,16 +7,28 @@ export class PostgresSessionRepository implements SessionRepository {
   private pool: Pool;
 
   constructor() {
-    this.pool = new Pool({
-      host: process.env.DATABASE_HOST,
-      port: parseInt(process.env.DATABASE_PORT || "5432"),
-      database: process.env.DATABASE_NAME,
-      user: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
-      ssl: {
-        rejectUnauthorized: false
-      }
-    });
+    if(process.env.RUNNING_ONLINE){
+      this.pool = new Pool({
+        host: process.env.DATABASE_HOST,
+        port: parseInt(process.env.DATABASE_PORT || "5432"),
+        database: process.env.DATABASE_NAME,
+        user: process.env.DATABASE_USER,
+        password: process.env.DATABASE_PASSWORD,
+        ssl: {
+          // false when running online (just for a test environment. Real PROD should be true)
+          rejectUnauthorized: false
+        }
+      });
+    }else{
+      this.pool = new Pool({
+        host: process.env.DATABASE_HOST,
+        port: parseInt(process.env.DATABASE_PORT || "5432"),
+        database: process.env.DATABASE_NAME,
+        user: process.env.DATABASE_USER,
+        password: process.env.DATABASE_PASSWORD,
+        // Do not define ssl when running locally
+      });
+    }
   }
 
   async saveSession(session: Session): Promise<Result<void>> {

@@ -19,8 +19,8 @@ Resources:
       Engine: postgres
       DBInstanceClass: db.t3.micro
       AllocatedStorage: 20
-      MasterUsername: zak
-      MasterUserPassword: ZdUr3dxhfoh1jMf4mlI0bbo49NhG
+      MasterUsername: zak # Change this to a username of your choosing
+      MasterUserPassword:  # Change this to a password of your choosing
       DBName: stats
       VPCSecurityGroups:
         - !GetAtt StatsDatabaseSecurityGroup.GroupId
@@ -38,8 +38,9 @@ Resources:
           DATABASE_HOST: !GetAtt StatsDatabase.Endpoint.Address
           DATABASE_PORT: 5432
           DATABASE_NAME: stats
-          DATABASE_USER: zak
-          DATABASE_PASSWORD: ZdUr3dxhfoh1jMf4mlI0bbo49NhG
+          DATABASE_USER: zak # Change this to a username of your choosing
+          DATABASE_PASSWORD:  # Change this to a password of your choosing
+          RUNNING_ONLINE: true
       Events:
         CreateSessionApiPost:
           Type: Api
@@ -59,8 +60,9 @@ Resources:
           DATABASE_HOST: !GetAtt StatsDatabase.Endpoint.Address
           DATABASE_PORT: 5432
           DATABASE_NAME: stats
-          DATABASE_USER: zak
-          DATABASE_PASSWORD: ZdUr3dxhfoh1jMf4mlI0bbo49NhG
+          DATABASE_USER: zak # Change this to a username of your choosing
+          DATABASE_PASSWORD:  # Change this to a password of your choosing
+          RUNNING_ONLINE: true
       Events:
         FetchSessionApi:
           Type: Api
@@ -80,8 +82,9 @@ Resources:
           DATABASE_HOST: !GetAtt StatsDatabase.Endpoint.Address
           DATABASE_PORT: 5432
           DATABASE_NAME: stats
-          DATABASE_USER: zak
-          DATABASE_PASSWORD: ZdUr3dxhfoh1jMf4mlI0bbo49NhG
+          DATABASE_USER: zak # Change this to a username of your choosing
+          DATABASE_PASSWORD:  # Change this to a password of your choosing
+          RUNNING_ONLINE: true
       Events:
         FetchCourseLifetimeStatsApi:
           Type: Api
