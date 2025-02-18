@@ -1,6 +1,5 @@
 import { APIGatewayEvent, Context, APIGatewayProxyResult } from "aws-lambda";
 import { Result } from "../infrastructure/repositories/SessionRepository";
-import { Session } from "../core/Session";
 import { PersistSessionService } from "../application/PersistSessionService";
 import { PostgresSessionRepository } from "../infrastructure/repositories/PostgresSessionRepository";
 
@@ -13,26 +12,27 @@ export const handler = async (
   const courseID = event.headers?.Courseid || event.headers?.courseid || "";
 
   const persistSessionService = new PersistSessionService(new PostgresSessionRepository());
-  const foundSessions: Result<Session[]> = await persistSessionService.findCourseLifetimeStats(userID, courseID);
+  const result: Result<{ totalModulesStudied: number; averageScore: number; timeStudied: number }> =
+    await persistSessionService.findCourseLifetimeStats(userID, courseID);
 
-  if (!foundSessions.ok) {
+  if (!result.ok) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ 
-        message: foundSessions.error.message, 
+      body: JSON.stringify({
+        message: result.error.message,
         found: false,
       }),
     };
   }
 
-  const sessionDataObjects = foundSessions.value.map((session: Session) => session.getSessionJSONData());
-
   return {
     statusCode: 200,
-    body: JSON.stringify({ 
-      message: sessionDataObjects.length > 0 ? "Successfully found sessions" : "No sessions found",
-      found: sessionDataObjects.length > 0,
-      sessions: sessionDataObjects
+    body: JSON.stringify({
+      message: "Successfully retrieved course lifetime stats",
+      found: true,
+      totalModulesStudied: result.value.totalModulesStudied,
+      averageScore: result.value.averageScore,
+      timeStudied: result.value.timeStudied,
     }),
   };
 };

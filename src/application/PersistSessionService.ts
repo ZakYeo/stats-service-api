@@ -47,36 +47,49 @@ export class PersistSessionService{
         };
     }
 
-    public async findCourseLifetimeStats(userID: string, courseID: string): Promise<Result<Session[]>> {
-        const sessions: Session[] = [];
+    public async findCourseLifetimeStats(userID: string, courseID: string): Promise<Result<{
+        totalModulesStudied: number;
+        averageScore: number;
+        timeStudied: number;
+    }>> {
+        let totalModulesStudied = 0;
+        let totalScore = 0;
+        let timeStudied = 0;
+        let sessionCount = 0;
+
         const resultGenerator = this.sessionRepository.findCourseLifetimeStats(userID, courseID);
 
         try {
             for await (const rawDataResult of resultGenerator) {
                 if (!rawDataResult.ok) {
-                return { ok: false, error: rawDataResult.error };
+                    return { ok: false, error: rawDataResult.error };
                 }
 
                 if (rawDataResult.value) {
-                const session = Session.create({
-                    sessionID: rawDataResult.value.sessionID,
-                    courseID: rawDataResult.value.courseID,
-                    userID: rawDataResult.value.userID,
-                    totalModulesStudied: rawDataResult.value.totalModulesStudied,
-                    averageScore: rawDataResult.value.averageScore,
-                    timeStudied: rawDataResult.value.timeStudied,
-                });
-
-                sessions.push(session);
+                    totalModulesStudied += rawDataResult.value.totalModulesStudied;
+                    totalScore += rawDataResult.value.averageScore;
+                    timeStudied += rawDataResult.value.timeStudied;
+                    sessionCount++;
                 } else {
-                console.warn("Received null session data.");
+                    console.warn("Received null session data.");
                 }
             }
 
-            return { ok: true, value: sessions };
+            if (sessionCount === 0) {
+                return { ok: true, value: { totalModulesStudied: 0, averageScore: 0, timeStudied: 0 } };
+            }
+
+            return {
+                ok: true,
+                value: {
+                    totalModulesStudied,
+                    averageScore: totalScore / sessionCount,
+                    timeStudied
+                }
+            };
         } catch (error) {
             return { ok: false, error: error instanceof Error ? error : new Error("Unknown error occurred") };
         }
-  }
- 
+    }
+  
 }

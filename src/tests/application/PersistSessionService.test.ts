@@ -105,7 +105,7 @@ describe('Persist Session Service', () => {
         .rejects.toThrow('Database failure');
     });
 
-    it("findCourseLifetimeStats should return a Result<Session[]>", async () => {
+   it("findCourseLifetimeStats should return aggregated / summarised course values", async () => {
       class MockSessionRepositoryForLifetimeStats implements SessionRepository {
         private sessions: SessionResponseObject[] = [
           {
@@ -172,18 +172,13 @@ describe('Persist Session Service', () => {
       expect(result.ok).toBe(true);
 
       if (result.ok) {
-        const sessions = result.value; 
+        const aggregatedStats = result.value; 
 
-        expect(sessions).toHaveLength(3);
-        expect(sessions).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({ sessionID: "session-456" }),
-            expect.objectContaining({ sessionID: "session-457" }),
-            expect.objectContaining({ sessionID: "session-458" }),
-          ])
-        );
+        expect(aggregatedStats).toHaveProperty("totalModulesStudied", 14); 
+        expect(aggregatedStats).toHaveProperty("averageScore", (90 + 89 + 45) / 3);
+        expect(aggregatedStats).toHaveProperty("timeStudied", 120 + 110 + 200);
       }
-  });
+  }); 
 
 
 
