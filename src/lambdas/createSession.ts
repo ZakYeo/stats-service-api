@@ -26,7 +26,6 @@ export const handler = async (
       statusCode: 500,
       body: JSON.stringify({
         message: result.error.message,
-        found: false,
       }),
     };
   }
