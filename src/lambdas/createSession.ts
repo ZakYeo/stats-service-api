@@ -19,10 +19,23 @@ export const handler = async (
     userID: event.headers?.Userid || event.headers?.userid || ""
   });
   const persistSessionService = new PersistSessionService(new PostgresSessionRepository());
-  await persistSessionService.saveSession(sessionToSave);
+  const result = await persistSessionService.saveSession(sessionToSave);
+
+  if (!result.ok) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: result.error.message,
+        found: false,
+      }),
+    };
+  }
 
   return {
-    statusCode: 200,
-    body: JSON.stringify({ message: "Hello, World!" }),
+    statusCode: 201,
+    body: JSON.stringify({
+      message: "Successfully saved course lifetime stats",
+    }),
   };
+
 };
