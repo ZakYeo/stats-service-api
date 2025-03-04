@@ -1,3 +1,5 @@
+import validator from "validator"
+
 export interface SessionDataObject {
     userID: string;
     sessionID: string;
@@ -42,6 +44,9 @@ export class Session{
     }
 
     public setSessionID(sessionID: string){
+        if(!this.isValidUUID(sessionID)){
+            throw new Error(`Invalid SessionID received: ${sessionID}`)
+        }
         this.sessionID = sessionID;
     }
     public getSessionID(): string{
@@ -49,7 +54,9 @@ export class Session{
     }
 
     public setTotalModulesStudied(totalModulesStudied: number){
-        this.nonNegativeCheck(totalModulesStudied, "Total Modules Studied")
+        if(!this.isValidPositiveNumber(totalModulesStudied)){
+            throw new Error(`Invalid totalModulesStudied received: ${totalModulesStudied}`)
+        }
         this.totalModulesStudied = totalModulesStudied;
     }
 
@@ -58,7 +65,9 @@ export class Session{
     }
 
     public setAverageScore(averageScore: number){
-        this.nonNegativeCheck(averageScore, "Average Score")
+        if(!this.isValidPositiveNumber(averageScore)){
+            throw new Error(`Invalid averageScore received: ${averageScore}`)
+        }
         this.averageScore = averageScore;
     }
 
@@ -67,19 +76,19 @@ export class Session{
     }
 
     public setTimeStudied(timeStudied: number){
-        this.nonNegativeCheck(timeStudied, "Time Studied")
+        if(!this.isValidPositiveNumber(timeStudied)){
+            throw new Error(`Invalid timeStudied received: ${timeStudied}`)
+        }
         this.timeStudied = timeStudied;
     }
     public getTimeStudied(): number{
         return this.timeStudied;
     }
-    private nonNegativeCheck(value: number, variableName: string) {
-        if (value < 0) {
-            throw new Error(`${variableName} must be non-negative`);
-        }
-    }
 
     public setCourseID(courseID: string){
+        if(!this.isValidUUID(courseID)){
+            throw new Error(`Invalid courseID received: ${courseID}`)
+        }
         this.courseID = courseID;
     }
 
@@ -89,6 +98,9 @@ export class Session{
 
 
     public setUserID(userID: string){
+        if(!this.isValidUUID(userID)){
+            throw new Error(`Invalid userID received: ${userID}`)
+        }
         this.userID = userID;
     }
 
@@ -107,4 +119,17 @@ export class Session{
         }
     }
 
+    private isValidUUID(value: string): Boolean {
+        if (typeof value !== 'string' || !validator.isUUID(value)) {
+            return false;
+        }
+        return true;
+    }
+
+    private isValidPositiveNumber(value: number): Boolean {
+        if (typeof value !== 'number' || isNaN(value) || value < 0) {
+            return false;
+        }
+        return true;
+    }
 }
