@@ -1,4 +1,4 @@
-import { SessionRepository, Result } from "../infrastructure/repositories/SessionRepository";
+import { SessionRepository, Result } from "../core/ports/SessionRepository";
 import { Session } from "../core/Session";
 
 export class PersistSessionService{

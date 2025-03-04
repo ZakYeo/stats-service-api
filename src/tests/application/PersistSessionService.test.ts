@@ -1,5 +1,5 @@
 import { PersistSessionService } from "../../application/PersistSessionService";
-import { SessionRepository, SessionResponseObject, Result } from "../../infrastructure/repositories/SessionRepository";
+import { SessionRepository, SessionResponseObject, Result } from "../../core/ports/SessionRepository";
 import { Session } from "../../core/Session";
 
 class MockSessionRepository implements SessionRepository {

@@ -1,4 +1,4 @@
-import { Session } from "../../core/Session";
+import { Session } from "../Session";
 
 export type SessionResponseObject = {
   courseID: string;

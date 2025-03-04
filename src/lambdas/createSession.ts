@@ -1,6 +1,6 @@
 import { APIGatewayEvent, Context, APIGatewayProxyResult } from "aws-lambda";
 import { Session } from "../core/Session";
-import { SessionRepository } from "../infrastructure/repositories/SessionRepository";
+import { SessionRepository } from "../core/ports/SessionRepository";
 import { PersistSessionService } from "../application/PersistSessionService";
 import { PostgresSessionRepository } from "../infrastructure/repositories/PostgresSessionRepository";
 

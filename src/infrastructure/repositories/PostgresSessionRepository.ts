@@ -1,5 +1,5 @@
 import { Pool } from "pg"; 
-import { SessionRepository, Result, SessionResponseObject } from "./SessionRepository";
+import { SessionRepository, Result, SessionResponseObject } from "../../core/ports/SessionRepository";
 import { Session } from "../../core/Session";
 
 
