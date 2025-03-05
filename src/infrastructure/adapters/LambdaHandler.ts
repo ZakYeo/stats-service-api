@@ -2,14 +2,12 @@ import { APIGatewayEvent, Context, APIGatewayProxyResult } from "aws-lambda";
 import { Session } from "../../core/Session";
 import { PersistSessionService } from "../../application/PersistSessionService";
 import { Result } from "../../core/ports/SessionRepository";
-
 export class LambdaHandler {
   private persistSessionService: PersistSessionService;
 
   constructor(persistSessionService: PersistSessionService) {
     this.persistSessionService = persistSessionService;
   }
-
   async createSession(event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> {
       const parsedBody = JSON.parse(event.body || "{}");
       let sessionToSave;

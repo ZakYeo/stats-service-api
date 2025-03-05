@@ -33,6 +33,9 @@ Resources:
       Runtime: nodejs18.x
       CodeUri: ./dist
       Timeout: 25
+      Tracing: Active
+      Policies:
+        - AWSXRayDaemonWriteAccess
       Environment:
         Variables:
           DATABASE_HOST: !GetAtt StatsDatabase.Endpoint.Address
@@ -91,4 +94,3 @@ Resources:
           Properties:
             Path: /courses/{courseId}
             Method: GET
-  
