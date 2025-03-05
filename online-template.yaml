@@ -2,15 +2,98 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 
 Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: my-sam-vpc
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 0, !GetAZs "" ]
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select [ 1, !GetAZs "" ]
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.3.0/24
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select [ 2, !GetAZs "" ]
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  NatGatewayEIP:
+    Type: AWS::EC2::EIP
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      SubnetId: !Ref PublicSubnet1
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+
+  PrivateSubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable
+
+  PrivateSubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable
+
   StatsDatabaseSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      VpcId: !Ref MyVPC
       GroupDescription: "Allow Lambda to access RDS"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 5432
           ToPort: 5432
-          CidrIp: 0.0.0.0/0 
+          SourceSecurityGroupId: !Ref LambdaSecurityGroup
+
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref MyVPC
+      GroupDescription: "Allow Lambda to access internal resources"
 
   StatsDatabase:
     Type: AWS::RDS::DBInstance
@@ -19,12 +102,21 @@ Resources:
       Engine: postgres
       DBInstanceClass: db.t3.micro
       AllocatedStorage: 20
-      MasterUsername: zak # Change this to a username of your choosing
-      MasterUserPassword:  # Change this to a password of your choosing
+      MasterUsername: zak
+      MasterUserPassword: 
       DBName: stats
       VPCSecurityGroups:
-        - !GetAtt StatsDatabaseSecurityGroup.GroupId
-      PubliclyAccessible: true
+        - !Ref StatsDatabaseSecurityGroup
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      PubliclyAccessible: false
+
+  RDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: "Subnets for RDS"
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
 
   CreateSessionFunction:
     Type: AWS::Serverless::Function
@@ -36,13 +128,20 @@ Resources:
       Tracing: Active
       Policies:
         - AWSXRayDaemonWriteAccess
+        - AWSLambdaVPCAccessExecutionRole
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref PrivateSubnet1
+          - !Ref PrivateSubnet2
       Environment:
         Variables:
           DATABASE_HOST: !GetAtt StatsDatabase.Endpoint.Address
           DATABASE_PORT: 5432
           DATABASE_NAME: stats
-          DATABASE_USER: zak # Change this to a username of your choosing
-          DATABASE_PASSWORD:  # Change this to a password of your choosing
+          DATABASE_USER: zak
+          DATABASE_PASSWORD: 
           RUNNING_ONLINE: true
       Events:
         CreateSessionApiPost:
@@ -61,13 +160,20 @@ Resources:
       Tracing: Active
       Policies:
         - AWSXRayDaemonWriteAccess
+        - AWSLambdaVPCAccessExecutionRole
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref PrivateSubnet1
+          - !Ref PrivateSubnet2
       Environment:
         Variables:
           DATABASE_HOST: !GetAtt StatsDatabase.Endpoint.Address
           DATABASE_PORT: 5432
           DATABASE_NAME: stats
-          DATABASE_USER: zak # Change this to a username of your choosing
-          DATABASE_PASSWORD:  # Change this to a password of your choosing
+          DATABASE_USER: zak
+          DATABASE_PASSWORD: 
           RUNNING_ONLINE: true
       Events:
         FetchSessionApi:
@@ -86,13 +192,20 @@ Resources:
       Tracing: Active
       Policies:
         - AWSXRayDaemonWriteAccess
+        - AWSLambdaVPCAccessExecutionRole
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref PrivateSubnet1
+          - !Ref PrivateSubnet2
       Environment:
         Variables:
           DATABASE_HOST: !GetAtt StatsDatabase.Endpoint.Address
           DATABASE_PORT: 5432
           DATABASE_NAME: stats
-          DATABASE_USER: zak # Change this to a username of your choosing
-          DATABASE_PASSWORD:  # Change this to a password of your choosing
+          DATABASE_USER: zak
+          DATABASE_PASSWORD: 
           RUNNING_ONLINE: true
       Events:
         FetchCourseLifetimeStatsApi:
@@ -100,3 +213,34 @@ Resources:
           Properties:
             Path: /courses/{courseId}
             Method: GET
+  InitializeDatabaseFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambdas/initializeDatabase.handler
+      Runtime: nodejs18.x
+      CodeUri: ./dist
+      Timeout: 30
+      Tracing: Active
+      Policies:
+        - AWSXRayDaemonWriteAccess
+        - AWSLambdaVPCAccessExecutionRole
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref PrivateSubnet1
+          - !Ref PrivateSubnet2
+      Environment:
+        Variables:
+          DATABASE_HOST: !GetAtt StatsDatabase.Endpoint.Address
+          DATABASE_PORT: 5432
+          DATABASE_NAME: stats
+          DATABASE_USER: zak
+          DATABASE_PASSWORD:  
+          RUNNING_ONLINE: true
+      Events:
+        InitializeDbApi:
+          Type: Api
+          Properties:
+            Path: /initialize-db
+            Method: POST

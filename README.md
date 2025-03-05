@@ -44,10 +44,11 @@ Before running this project, ensure you have the following installed:
 - Run through the sam deploy guided steps
 - This will deploy the infrastructure
 - Now, run the command:
-- `psql --host rds-hostname --port 5432 --username zak --dbname stats --file init.sql`
-- Replace `rds-hostname` with the RDS hostname found in the RDS resource on the AWS console from the web browser.
-- Replace `username` with the one chosen when editing the yaml file
-- Now the database is setup, you may interact with the API endpoint found on your API Gateway endpoint that has been deployed
+- `curl -X POST https://api-id.execute-api.region.amazonaws.com/Prod/initialize-db`
+- Replace `api-id` with the Api Gateway ID that has been deployed
+- Replace `region`, with the region you are in, e.g `eu-west-2`
+- This will initialize the database
+- Now the database is setup, you may interact with the API endpoint found on your API Gateway that has been deployed
 
 # Example Network Requests
 
