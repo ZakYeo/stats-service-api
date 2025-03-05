@@ -2,12 +2,18 @@ import { APIGatewayEvent, Context, APIGatewayProxyResult } from "aws-lambda";
 import { Session } from "../../core/Session";
 import { PersistSessionService } from "../../application/PersistSessionService";
 import { Result } from "../../core/ports/SessionRepository";
+import { Tracer } from '@aws-lambda-powertools/tracer';
+
+const tracer = new Tracer({ serviceName: 'LambdaHandlerService' });
+
 export class LambdaHandler {
   private persistSessionService: PersistSessionService;
 
   constructor(persistSessionService: PersistSessionService) {
     this.persistSessionService = persistSessionService;
   }
+
+  @tracer.captureMethod()
   async createSession(event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> {
       const parsedBody = JSON.parse(event.body || "{}");
       let sessionToSave;
@@ -28,7 +34,10 @@ export class LambdaHandler {
 
       }
 
+      const segment = tracer.getSegment();
+      const subsegment = segment?.addNewSubsegment('PersistSessionServiceSaveSession');
       const result = await this.persistSessionService.saveSession(sessionToSave);
+      subsegment?.close();
 
       if (!result.ok) {
         return {
@@ -43,6 +52,7 @@ export class LambdaHandler {
       };
   }
 
+  @tracer.captureMethod()
   async fetchCourseLifetimeStats(event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> {
     const userID = event.headers?.Userid || event.headers?.userid || "";
     const courseID = event.headers?.Courseid || event.headers?.courseid || "";
@@ -57,8 +67,12 @@ export class LambdaHandler {
       };
     }
 
+    const segment = tracer.getSegment();
+    const subsegment = segment?.addNewSubsegment('PersistSessionServiceFindCourseLifetimeStats');
     const result: Result<{ totalModulesStudied: number; averageScore: number; timeStudied: number }> =
-      await this.persistSessionService.findCourseLifetimeStats(userID, courseID);
+    await this.persistSessionService.findCourseLifetimeStats(userID, courseID);
+    
+    subsegment?.close();
 
     if (!result.ok) {
       return {
@@ -82,6 +96,7 @@ export class LambdaHandler {
     };
   }
 
+  @tracer.captureMethod()
   async fetchSession(event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> {
     const sessionID = event.headers?.Sessionid || event.headers?.sessionid || "";
     const courseID = event.headers?.Courseid || event.headers?.courseid || "";
@@ -97,7 +112,10 @@ export class LambdaHandler {
       };
     }
 
+    const segment = tracer.getSegment();
+    const subsegment = segment?.addNewSubsegment('PersistSessionServiceFindSessionByID');
     const session = await this.persistSessionService.findSessionByID(sessionID, courseID, userID);
+    subsegment?.close();
 
     if (!session.ok) {
       return {
