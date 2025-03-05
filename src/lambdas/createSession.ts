@@ -3,7 +3,7 @@ import { LambdaHandlerFactory } from "../infrastructure/factories/LambdaHandlerF
 import { Tracer } from '@aws-lambda-powertools/tracer';
 import type { LambdaInterface } from '@aws-lambda-powertools/commons/types';
 
-const tracer = new Tracer({ serviceName: 'MyService' });
+const tracer = new Tracer({ serviceName: 'CreateSessionService' });
 const lambdaHandler = LambdaHandlerFactory.create();
 
 
