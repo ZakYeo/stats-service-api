@@ -18,7 +18,8 @@ services:
       - local-dev-network
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./pg_hba.conf:/etc/postgresql-custom/pg_hba.conf
+    command: postgres -c hba_file=/etc/postgresql-custom/pg_hba.conf
 
 volumes:
   postgres_data:

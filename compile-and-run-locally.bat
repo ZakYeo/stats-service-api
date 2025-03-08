@@ -3,6 +3,16 @@ setlocal
 echo Starting Docker Compose...
 docker-compose up -d
 
+:: Wait for PostgreSQL to be ready
+echo Waiting for PostgreSQL to start...
+timeout /t 5
+
+echo Running Prisma Migrations...
+call npx prisma migrate deploy
+
+echo Seeding Database...
+call npx prisma db seed
+
 echo Building TypeScript project...
 call npm run build
 
