@@ -1,6 +1,7 @@
 const path = require("path");
 const glob = require("glob");
 const webpack = require("webpack");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: glob
@@ -16,7 +17,8 @@ module.exports = {
       {
         test: /\.ts$/,
         use: "ts-loader",
-        exclude: /node_modules/,
+        // https://www.prisma.io/docs/orm/prisma-client/deployment/module-bundlers
+        exclude: /node_modules\/(?!@prisma\/client)/, // Allow Prisma Client
       },
     ],
   },
@@ -35,6 +37,14 @@ module.exports = {
     new webpack.IgnorePlugin({
       // https://stackoverflow.com/questions/41522744/webpack-import-error-with-node-postgres-pg-client
       resourceRegExp: /^pg-native$/, // Ignore to fix webpack issue
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: "node_modules/.prisma/client",
+          to: "node_modules/.prisma/client",
+        },
+      ],
     }),
   ],
 };

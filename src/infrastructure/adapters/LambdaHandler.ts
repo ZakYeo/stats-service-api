@@ -5,6 +5,7 @@ import { Result } from "../../core/ports/SessionRepository";
 import { Tracer } from '@aws-lambda-powertools/tracer';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { Metrics, MetricUnit } from '@aws-lambda-powertools/metrics';
+import prisma from "../../core/persistence/prisma";
 
 const tracer = new Tracer({ serviceName: 'LambdaHandlerTracerService' });
 const logger = new Logger({ serviceName: 'LambdaHandlerLoggerService' });

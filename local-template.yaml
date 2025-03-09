@@ -15,6 +15,7 @@ Resources:
           DATABASE_NAME: stats
           DATABASE_USER: admin
           DATABASE_PASSWORD: password
+          DATABASE_URL: postgresql://admin:password@postgres:5432/stats
       Events:
         CreateSessionApiPost:
           Type: Api
@@ -35,6 +36,7 @@ Resources:
             DATABASE_NAME: stats
             DATABASE_USER: admin
             DATABASE_PASSWORD: password
+            DATABASE_URL: postgresql://admin:password@postgres:5432/stats
         Events:
           FetchSessionApi:
             Type: Api
@@ -56,6 +58,7 @@ Resources:
           DATABASE_NAME: stats
           DATABASE_USER: admin
           DATABASE_PASSWORD: password
+          DATABASE_URL: postgresql://admin:password@postgres:5432/stats
       Events:
         FetchCourseLifetimeStatsApi:
           Type: Api

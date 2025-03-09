@@ -32,10 +32,12 @@ Before running this project, ensure you have the following installed:
 - Ensure Docker is running
 - Run the .bat file `compile-and-run-locally.bat`
 - This will boot up AWS API Gateway & Postgres locally on your machine
-- The docker compose will automatically run the `init.sql` file to initialiase the SQL databases & add sample Courses & UserIDs
+- The `.bat` file will also initialize Prisma and run the seed.ts file for DB initialization
 - You may interact with the API via the localhostURL
 
 ## AWS Deployment Setup
+
+- (Currently Broken this commit, please use local dev setup)
 
 - Run `npm install` at the root directory
 - Have docker running

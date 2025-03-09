@@ -7,6 +7,9 @@ docker-compose up -d
 echo Waiting for PostgreSQL to start...
 timeout /t 5
 
+echo Generating Prisma Client...
+call npx prisma generate
+
 echo Running Prisma Migrations...
 call npx prisma migrate deploy
 
