@@ -29,6 +29,9 @@ Before running this project, ensure you have the following installed:
 ## Local Development Setup
 
 - Run `npm install` at the root directory
+- Create a .env file and add the following:
+- `DATABASE_URL="postgresql://admin:password@127.0.0.1:5432/stats"`
+- (Note that this username & password is for local deployments only)
 - Ensure Docker is running
 - Run the .bat file `compile-and-run-locally.bat`
 - This will boot up AWS API Gateway & Postgres locally on your machine
