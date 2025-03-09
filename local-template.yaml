@@ -10,11 +10,6 @@ Resources:
       Timeout: 25 
       Environment:
         Variables:
-          DATABASE_HOST: postgres
-          DATABASE_PORT: 5432
-          DATABASE_NAME: stats
-          DATABASE_USER: admin
-          DATABASE_PASSWORD: password
           DATABASE_URL: postgresql://admin:password@postgres:5432/stats
       Events:
         CreateSessionApiPost:
@@ -31,11 +26,6 @@ Resources:
         Timeout: 25
         Environment:
           Variables:
-            DATABASE_HOST: postgres
-            DATABASE_PORT: 5432
-            DATABASE_NAME: stats
-            DATABASE_USER: admin
-            DATABASE_PASSWORD: password
             DATABASE_URL: postgresql://admin:password@postgres:5432/stats
         Events:
           FetchSessionApi:
@@ -53,11 +43,6 @@ Resources:
       Timeout: 25
       Environment:
         Variables:
-          DATABASE_HOST: postgres
-          DATABASE_PORT: 5432
-          DATABASE_NAME: stats
-          DATABASE_USER: admin
-          DATABASE_PASSWORD: password
           DATABASE_URL: postgresql://admin:password@postgres:5432/stats
       Events:
         FetchCourseLifetimeStatsApi:
