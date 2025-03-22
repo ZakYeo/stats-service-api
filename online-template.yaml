@@ -20,6 +20,25 @@ Resources:
       MapPublicIpOnLaunch: true
       AvailabilityZone: !Select [ 0, !GetAZs "" ]
 
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+
+
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
@@ -88,6 +107,11 @@ Resources:
           FromPort: 5432
           ToPort: 5432
           SourceSecurityGroupId: !Ref LambdaSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref BastionSecurityGroup
+
 
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -103,12 +127,14 @@ Resources:
       DBInstanceClass: db.t3.micro
       AllocatedStorage: 20
       MasterUsername: zak
-      MasterUserPassword: 
+      MasterUserPassword: password
       DBName: stats
       VPCSecurityGroups:
         - !Ref StatsDatabaseSecurityGroup
       DBSubnetGroupName: !Ref RDSSubnetGroup
       PubliclyAccessible: false
+      DeletionProtection: false
+      SkipFinalSnapshot: true
 
   RDSSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
@@ -123,6 +149,7 @@ Resources:
     Properties:
       Handler: lambdas/createSession.handler
       Runtime: nodejs18.x
+      FunctionName: CreateSessionFunction
       CodeUri: ./dist
       Timeout: 25
       Tracing: Active
@@ -138,10 +165,6 @@ Resources:
       Environment:
         Variables:
           DATABASE_HOST: !GetAtt StatsDatabase.Endpoint.Address
-          DATABASE_PORT: 5432
-          DATABASE_NAME: stats
-          DATABASE_USER: zak
-          DATABASE_PASSWORD: 
           RUNNING_ONLINE: true
       Events:
         CreateSessionApiPost:
@@ -155,6 +178,7 @@ Resources:
     Properties:
       Handler: lambdas/fetchSession.handler
       Runtime: nodejs18.x
+      FunctionName: FetchSessionFunction
       CodeUri: ./dist
       Timeout: 25
       Tracing: Active
@@ -170,10 +194,6 @@ Resources:
       Environment:
         Variables:
           DATABASE_HOST: !GetAtt StatsDatabase.Endpoint.Address
-          DATABASE_PORT: 5432
-          DATABASE_NAME: stats
-          DATABASE_USER: zak
-          DATABASE_PASSWORD: 
           RUNNING_ONLINE: true
       Events:
         FetchSessionApi:
@@ -187,6 +207,7 @@ Resources:
     Properties:
       Handler: lambdas/fetchCourseLifetimeStats.handler
       Runtime: nodejs18.x
+      FunctionName: FetchCourseLifetimeStatsFunction
       CodeUri: ./dist
       Timeout: 25
       Tracing: Active
@@ -202,11 +223,6 @@ Resources:
       Environment:
         Variables:
           DATABASE_HOST: !GetAtt StatsDatabase.Endpoint.Address
-          DATABASE_PORT: 5432
-          DATABASE_NAME: stats
-          DATABASE_USER: zak
-          DATABASE_PASSWORD: 
-          RUNNING_ONLINE: true
       Events:
         FetchCourseLifetimeStatsApi:
           Type: Api
@@ -218,8 +234,10 @@ Resources:
     Properties:
       Handler: lambdas/initializeDatabase.handler
       Runtime: nodejs18.x
+      FunctionName: InitializeDatabaseFunction
       CodeUri: ./dist
-      Timeout: 30
+      Timeout: 500
+      MemorySize: 1024
       Tracing: Active
       Policies:
         - AWSXRayDaemonWriteAccess
@@ -236,11 +254,57 @@ Resources:
           DATABASE_PORT: 5432
           DATABASE_NAME: stats
           DATABASE_USER: zak
-          DATABASE_PASSWORD:  
+          DATABASE_PASSWORD: password
           RUNNING_ONLINE: true
+          PRISMA_CLI_BINARY_TARGETS: native,rhel-openssl-1.0.x
       Events:
         InitializeDbApi:
           Type: Api
           Properties:
             Path: /initialize-db
             Method: POST
+  BastionSSMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  BastionSSMInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref BastionSSMRole
+      Path: /
+
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref MyVPC
+      GroupDescription: "No inbound ports needed for SSM-only access"
+
+  BastionHost:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      ImageId: ami-0505148b3591e4c07 
+      SubnetId: !Ref PublicSubnet1
+      SecurityGroupIds:
+        - !Ref BastionSecurityGroup
+      IamInstanceProfile: !Ref BastionSSMInstanceProfile
+      Tags:
+        - Key: Name
+          Value: bastion-host
+Outputs:
+  BastionInstanceId:
+    Description: Bastion EC2 Instance ID
+    Value: !Ref BastionHost
+    Export:
+      Name: BastionInstanceId
